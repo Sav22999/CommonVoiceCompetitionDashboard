@@ -22,10 +22,30 @@ HTML2 = """
 """
 
 if __name__ == "__main__":
+    reqData1 = requests.get("https://www.saveriomorelli.com/api/common-voice-android/v2/languages").content
 
-    reqData = requests.get("https://commonvoice.mozilla.org/api/v1/language_stats").content
+    j = json.loads(reqData1)
+    b = []
+    for lang in j["languages"]:
+        l = {}
+        l[j["languages"][lang]["english"]] = lang
+        b.append(l)
 
-    j = json.loads(reqData)
+    tf = open("LangListSpeech.py", "w")
+    json.dump(b, tf)
+    tf.close()
+
+    f = open("LangListSpeech.py", 'r+')
+    lines = f.readlines()  # read old content
+    f.seek(0)  # go back to the beginning of the file
+    f.write("langs = ")  # write new content at the beginning
+    for line in lines:  # write old content after new
+        f.write(line)
+    f.close()
+
+    reqData2 = requests.get("https://commonvoice.mozilla.org/api/v1/language_stats").content
+
+    j = json.loads(reqData2)
     # print(j)
     b = list()
     for lang in j["launched"]:
@@ -41,7 +61,7 @@ if __name__ == "__main__":
         # print(langCode)
         b.remove(langCode)
 
-    with open("website/new_supported/index.html", "w") as f:
+    with open("website/index.html", "w") as f:
         f.write(HTML1)
 
         if len(b) > 0:

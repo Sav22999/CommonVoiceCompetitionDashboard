@@ -45,13 +45,14 @@ if __name__ == "__main__":
         f.write(line)
     f.close()
 
-    reqData2 = requests.get("https://commonvoice.mozilla.org/api/v1/language_stats").content
+    reqData2 = requests.get("https://commonvoice.mozilla.org/api/v1/languages_all").content
 
     fromServer = json.loads(reqData2)
     # print(j)
     allLanguagesFromMozilla = list()
-    for lang in fromServer["launched"]:
-        allLanguagesFromMozilla.append(lang.get("locale"))
+    for lang in fromServer:
+        if(lang["is_contributable"]==1):
+            allLanguagesFromMozilla.append(lang["name"])
     allLanguagesFromMozilla.sort()
 
     # print(allLanguagesFromMozilla)
@@ -64,6 +65,7 @@ if __name__ == "__main__":
     # print(tempSavedLanguages)
 
     newLanguages = list()
+    wrongLanguages = list()
 
     for k in allLanguagesFromMozilla:
         # print(k.values())
@@ -72,31 +74,43 @@ if __name__ == "__main__":
         if k not in tempSavedLanguages:
             newLanguages.append(k)
 
+    for w in tempSavedLanguages:
+        if w not in allLanguagesFromMozilla:
+            wrongLanguages.append(w)
+
     # print(newLanguages)
 
     with open("website/index.html", "w") as f:
         f.write(HTML1)
 
         if len(newLanguages) > 0:
+            f.write("<p>New languages to add</p>")
             f.write(str(newLanguages))
             f.write("<p></p>")
-            for i in newLanguages:
-                c = fromServer["launched"]
+            '''for i in newLanguages:
+                c = fromServer["launched"]'''
 
-                # for e in c:
-                #     if e[""]
-                #     print(e)
-                # for j in c:
-                # print(j)
-                # c = reqData
-                # print(c)
+            # for e in c:
+            #     if e[""]
+            #     print(e)
+            # for j in c:
+            # print(j)
+            # c = reqData
+            # print(c)
         else:
-            print("probably no new languages added")
+            # print("probably no new languages added")
+            f.write("<p>No new languages to add</p>")
+
+        if len(wrongLanguages) > 0:
+            f.write("<hr><p>There could be wrong languages</p>")
+            f.write(str(wrongLanguages))
+            f.write("<p></p>")
+            f.write(str(allLanguagesFromMozilla))
 
         now = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
         date_time = now.strftime("%d.%m.%y %H:%M")
 
-        f.write(f"\nlast updated: {date_time}")
+        f.write(f"\n\n<p>Last updated: {date_time}</p>")
         f.write(HTML2)
 
     # langCode = list(langArray.values())[0]

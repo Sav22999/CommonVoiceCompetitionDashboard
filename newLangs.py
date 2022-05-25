@@ -24,15 +24,17 @@ HTML2 = """
 if __name__ == "__main__":
     reqData1 = requests.get("https://www.saveriomorelli.com/api/common-voice-android/v2/languages").content
 
-    j = json.loads(reqData1)
-    b = []
-    for lang in j["languages"]:
+    fromServer = json.loads(reqData1)
+    allLanguages = []
+    for lang in fromServer["languages"]:
         l = {}
-        l[j["languages"][lang]["english"]] = lang
-        b.append(l)
+        l[fromServer["languages"][lang]["english"]] = lang
+        allLanguages.append(l)
+
+    # print(allLanguages)
 
     tf = open("LangListSpeech.py", "w")
-    json.dump(b, tf)
+    json.dump(allLanguages, tf)
     tf.close()
 
     f = open("LangListSpeech.py", 'r+')
@@ -45,30 +47,41 @@ if __name__ == "__main__":
 
     reqData2 = requests.get("https://commonvoice.mozilla.org/api/v1/language_stats").content
 
-    j = json.loads(reqData2)
+    fromServer = json.loads(reqData2)
     # print(j)
-    b = list()
-    for lang in j["launched"]:
-        b.append(lang.get("locale"))
+    allLanguagesFromMozilla = list()
+    for lang in fromServer["launched"]:
+        allLanguagesFromMozilla.append(lang.get("locale"))
+    allLanguagesFromMozilla.sort()
 
-    # print(b)
+    # print(allLanguagesFromMozilla)
 
-    for k in LangListSpeech.langs:
+    tempSavedLanguages = list()
+    for temp in allLanguages:
+        tempSavedLanguages.append(temp[list(temp.keys())[0]])
+    tempSavedLanguages.sort()
+
+    # print(tempSavedLanguages)
+
+    newLanguages = list()
+
+    for k in allLanguagesFromMozilla:
         # print(k.values())
         # print(k.keys())
         # a = k.values()
-        langCode = list(k.values())[0]
-        # print(langCode)
-        b.remove(langCode)
+        if k not in tempSavedLanguages:
+            newLanguages.append(k)
+
+    # print(newLanguages)
 
     with open("website/index.html", "w") as f:
         f.write(HTML1)
 
-        if len(b) > 0:
-            f.write(str(b))
+        if len(newLanguages) > 0:
+            f.write(str(newLanguages))
             f.write("<p></p>")
-            for i in b:
-                c = j["launched"]
+            for i in newLanguages:
+                c = fromServer["launched"]
 
                 # for e in c:
                 #     if e[""]
